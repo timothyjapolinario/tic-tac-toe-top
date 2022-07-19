@@ -3,10 +3,14 @@
     height: 500px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
     overflow: hidden;
 }
 
 .game-board > div{
+    text-align: center;
+    font-size: 9rem;
+    padding: 0;
     outline: 1px solid black;
 }
 
