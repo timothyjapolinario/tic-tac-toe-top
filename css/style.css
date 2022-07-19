@@ -1,0 +1,12 @@
+.game-board{
+    width: 500px;
+    height: 500px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    overflow: hidden;
+}
+
+.game-board > div{
+    outline: 1px solid black;
+}
+
