@@ -24,6 +24,7 @@ const Game = (() => {
     let currentPlayer = player_1
     let boardSlots = document.querySelectorAll(".game-board > div")
     let resetButton = document.querySelector("#reset")
+    let matchResult = document.querySelector(".match-result")
     let rows = [[1,2,3],[4,5,6],[7,8,9]]
     let columns = [[1,4,7],[2,5,8],[3,6,9]]
     let diagonals = [[1,5,9], [3,5,7]]
@@ -38,6 +39,8 @@ const Game = (() => {
         })
 
         resetButton.addEventListener('click', reset)
+
+        matchResult.addEventListener('click', removeResult)
     }
     const putMark = (mark, slot, slotIndex) => {
         if(!slot.innerText){
@@ -58,14 +61,15 @@ const Game = (() => {
         rounds -= 1
         
         if(checkWinner()){
-            console.log('Winner: ' + currentPlayer.getMarker())
+            announceResult('Winner: ' + currentPlayer.getMarker())
             reset()
             return
         }
         console.log('still running')
         if(rounds == 0){
-            console.log('Draw!')
+            announceResult('Draw!')
             reset()
+            return
         }
         changeCurrentPlayer()
     }
@@ -101,6 +105,14 @@ const Game = (() => {
         return hasWinner
     }
 
+    const announceResult = (textResult) =>{
+        matchResult.style.display = "block"
+        matchResult.innerText = textResult
+    }
+
+    const removeResult = () => {
+        matchResult.style.display = "none"
+    }
 
     let reset = () =>{
         player_1.removeAllMarks()
