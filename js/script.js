@@ -6,36 +6,44 @@ const Player = (marker) => {
     const getMarkedSlots = () =>{
         return markedSlots
     }
+
+    const removeAllMarks = () =>{
+        markedSlots = []
+    }
+
     const addSlot = (index) => {
         markedSlots.push(index)
     }
-    return {getMarker, addSlot, getMarkedSlots}
+    return {getMarker, addSlot, getMarkedSlots, removeAllMarks}
 }
 
 const Game = (() => {
     let player_1 = Player("x")
     let player_2 = Player("o")
+    let rounds = 9
     let currentPlayer = player_1
     let boardSlots = document.querySelectorAll(".game-board > div")
-
+    let resetButton = document.querySelector("#reset")
     let rows = [[1,2,3],[4,5,6],[7,8,9]]
     let columns = [[1,4,7],[2,5,8],[3,6,9]]
     let diagonals = [[1,5,9], [3,5,7]]
 
     const bindEvents = () =>{
+    
         boardSlots.forEach((slot, index) => {
             console.log(index)
             slot.addEventListener('click', function(){
                 putMark(currentPlayer.getMarker(), slot, index)
             })
         })
+
+        resetButton.addEventListener('click', reset)
     }
     const putMark = (mark, slot, slotIndex) => {
         if(!slot.innerText){
             slot.innerText = mark
             currentPlayer.addSlot(slotIndex+1)
-            console.log(checkWinner())
-            changeCurrentPlayer()
+            endTurn()
         }
     }
     const changeCurrentPlayer = () =>{
@@ -46,8 +54,23 @@ const Game = (() => {
         }
     }
 
-    let checker = (arr, target) => target.every(v => arr.includes(v))
+    const endTurn = () =>{
+        rounds -= 1
+        
+        if(checkWinner()){
+            console.log('Winner: ' + currentPlayer.getMarker())
+            reset()
+            return
+        }
+        console.log('still running')
+        if(rounds == 0){
+            console.log('Draw!')
+            reset()
+        }
+        changeCurrentPlayer()
+    }
     const checkWinner = () =>{
+        let checker = (arr, target) => target.every(v => arr.includes(v))
         let hasWinner = false
         markedSlots = currentPlayer.getMarkedSlots()
 
@@ -75,8 +98,16 @@ const Game = (() => {
                 hasWinner = true
             }
         })
-
         return hasWinner
+    }
+
+
+    let reset = () =>{
+        player_1.removeAllMarks()
+        player_2.removeAllMarks()
+        boardSlots.forEach(slot=>{
+            slot.innerText = ""
+        })
     }
     bindEvents()
     return{player_1, player_2}
