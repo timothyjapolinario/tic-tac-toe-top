@@ -17,6 +17,30 @@ const Player = (marker) => {
     return {getMarker, addSlot, getMarkedSlots, removeAllMarks}
 }
 
+
+const Computer = (marker, difficulty, board) => {
+    const prototype = Player(marker);
+    const speak = () => {
+        console.log("beep-boop-beep-boop")
+    }
+
+    const makeMove = () =>{
+        if(difficulty == 1){
+            randomMove()
+        }
+    }
+
+    const randomMove = () =>{
+        let randomNumber = Math.floor(Math.random()*8)
+        while(board.includes(randomNumber)){
+            randomNumber = Math.floor(Math.random()*8)
+        }
+        board[randomNumber] = marker 
+    }
+    return Object.assign({}, prototype, {speak})     
+}
+
+
 const Game = (() => {
     let player_1 = Player("x")
     let player_2 = Player("o")
@@ -25,9 +49,8 @@ const Game = (() => {
     let boardSlots = document.querySelectorAll(".game-board > div")
     let resetButton = document.querySelector("#reset")
     let matchResult = document.querySelector(".match-result")
-    let rows = [[1,2,3],[4,5,6],[7,8,9]]
-    let columns = [[1,4,7],[2,5,8],[3,6,9]]
-    let diagonals = [[1,5,9], [3,5,7]]
+
+    const board = []
 
     const bindEvents = () =>{
     
@@ -44,8 +67,9 @@ const Game = (() => {
     }
     const putMark = (mark, slot, slotIndex) => {
         if(!slot.innerText){
-            slot.innerText = mark
-            currentPlayer.addSlot(slotIndex+1)
+            //slot.innerText = mark
+            board[slotIndex] = currentPlayer.getMarker()
+            currentPlayer.addSlot(slotIndex)
             endTurn()
         }
     }
@@ -57,9 +81,20 @@ const Game = (() => {
         }
     }
 
+    const renderBoard = () => {
+        let index = 0
+        boardSlots.forEach(slot =>{
+            if(board[index]){
+                slot.innerText = board[index]
+            }
+            index += 1
+        })
+    }
+
     const endTurn = () =>{
         rounds -= 1
-        
+        renderBoard()
+        console.log(board)
         if(checkWinner()){
             announceResult('Winner: ' + currentPlayer.getMarker())
             reset()
@@ -74,6 +109,9 @@ const Game = (() => {
         changeCurrentPlayer()
     }
     const checkWinner = () =>{
+        const rows = [[0,1,2],[3,4,5],[6,7,8]]
+        const columns = [[0,3,6],[1,4,7],[2,5,8]]
+        const diagonals = [[0,4,8], [2,4,6]]
         let checker = (arr, target) => target.every(v => arr.includes(v))
         let hasWinner = false
         markedSlots = currentPlayer.getMarkedSlots()
