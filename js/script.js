@@ -8,18 +8,20 @@ const Player = (marker) => {
     }
 
     const removeAllMarks = () =>{
-        markedSlots = []
+        markedSlots.length = 0
     }
 
-    const addSlot = (index) => {
+
+    const makeMove = (index) => {
         markedSlots.push(index)
     }
-    return {getMarker, addSlot, getMarkedSlots, removeAllMarks}
+    return {getMarker, makeMove, getMarkedSlots, removeAllMarks}
 }
 
 
-const Computer = (marker, difficulty, board) => {
+const Computer = (marker, difficulty,board) => {
     const prototype = Player(marker);
+    const markedSlots = prototype.getMarkedSlots()
     const speak = () => {
         console.log("beep-boop-beep-boop")
     }
@@ -30,34 +32,64 @@ const Computer = (marker, difficulty, board) => {
         }
     }
 
+
     const randomMove = () =>{
         let randomNumber = Math.floor(Math.random()*8)
-        while(board.includes(randomNumber)){
-            randomNumber = Math.floor(Math.random()*8)
+        if(board.includes(undefined)){
+            while(!(board[randomNumber] == null) ){
+                
+                randomNumber = Math.floor(Math.random()*8)
+                console.log("selecting number")
+            }
+            markedSlots.push(randomNumber)
         }
-        board[randomNumber] = marker 
     }
-    return Object.assign({}, prototype, {speak})     
+    return Object.assign({}, prototype, {makeMove, randomMove})     
 }
 
 
 const Game = (() => {
+    let board = []
     let player_1 = Player("x")
-    let player_2 = Player("o")
+    let player_2 = Computer("o", 1, board)
     let rounds = 9
     let currentPlayer = player_1
     let boardSlots = document.querySelectorAll(".game-board > div")
     let resetButton = document.querySelector("#reset")
     let matchResult = document.querySelector(".match-result")
 
-    const board = []
+    const playTurn = (slot, index) =>{
+        //console.log("player one move")
+        player_1.makeMove(index)
+       // console.log("updatng board")
+        updateBoard()
+        //console.log("player two move")
+        endTurn()
+        player_2.makeMove()
+        //console.log("updatng board")
+        updateBoard()
+        //console.log("rendering board")
+        renderBoard()
+        //console.log("ending turn")
+        endTurn()
+    }
+
+    const updateBoard = () =>{
+        player_1.getMarkedSlots().forEach(slotIndex => {
+            board[slotIndex] = player_1.getMarker()
+        })
+        player_2.getMarkedSlots().forEach(slotIndex => {
+            board[slotIndex] = player_2.getMarker()
+        })
+    }
 
     const bindEvents = () =>{
     
         boardSlots.forEach((slot, index) => {
-            console.log(index)
             slot.addEventListener('click', function(){
-                putMark(currentPlayer.getMarker(), slot, index)
+                if(!slot.innerText){
+                    playTurn(slot, index)
+                }
             })
         })
 
@@ -65,14 +97,7 @@ const Game = (() => {
 
         matchResult.addEventListener('click', removeResult)
     }
-    const putMark = (mark, slot, slotIndex) => {
-        if(!slot.innerText){
-            //slot.innerText = mark
-            board[slotIndex] = currentPlayer.getMarker()
-            currentPlayer.addSlot(slotIndex)
-            endTurn()
-        }
-    }
+
     const changeCurrentPlayer = () =>{
         if(currentPlayer == player_1){
             currentPlayer = player_2
@@ -94,13 +119,11 @@ const Game = (() => {
     const endTurn = () =>{
         rounds -= 1
         renderBoard()
-        console.log(board)
         if(checkWinner()){
             announceResult('Winner: ' + currentPlayer.getMarker())
             reset()
             return
         }
-        console.log('still running')
         if(rounds == 0){
             announceResult('Draw!')
             reset()
@@ -140,6 +163,7 @@ const Game = (() => {
                 hasWinner = true
             }
         })
+        console.log(hasWinner)
         return hasWinner
     }
 
@@ -158,7 +182,8 @@ const Game = (() => {
         boardSlots.forEach(slot=>{
             slot.innerText = ""
         })
+        board.length = 0
     }
     bindEvents()
-    return{player_1, player_2}
+    return{player_1, player_2, board}
 })();
