@@ -22,13 +22,26 @@ const Player = (marker, board) => {
 
 const Computer = (marker, difficulty,board) => {
     const prototype = Player(marker);
+    let boardCopy
+    let iteration = 0
+    let opponentMarker = marker == "x"? "o": "x"
+    let computer_player = Player(marker)
+    let other_player = Player(opponentMarker)
+    let currentPlayer = computer_player
+
     const speak = () => {
         console.log("beep-boop-beep-boop")
     }
 
     const makeMove = () =>{
         if(difficulty == 1){
+            boardCopy = board.slice(0)
+            console.log(miniMax())
             return randomMove()
+        }
+        if(difficulty == 2){
+            boardCopy = board.slice(0)
+            miniMax()
         }
     }
     const randomMove = () =>{
@@ -44,18 +57,69 @@ const Computer = (marker, difficulty,board) => {
     }
 
     const miniMax = () => {
-        let opponentMarker = marker == "x"? "o": "x"
-        let computer_player = Player(marker)
-        let other_player = Player(opponentMarker)
-
-
+        console.log("spaces: " + (countAvailableSpaces(boardCopy)-1))
+        if(countAvailableSpaces(boardCopy) < 1){
+            console.log(boardCopy)
+            return iteration
+        }
+        fillNextSpace(boardCopy, currentPlayer.getMarker())
+        changeCurrentPlayer()
+        console.log("running")
+        iteration += 1
+        miniMax()
     }
-    const countAvailableSpaces = () =>{
-        let notNull = board.filter(slot => !(slot == null)).length
+
+    const changeCurrentPlayer = () => {
+        if(currentPlayer == computer_player){
+            currentPlayer = other_player
+        }else{
+            currentPlayer = computer_player
+        }
+    }
+
+    const fillNextSpace = (newBoard, mark) =>{
+        let index = newBoard.findIndex(slot => slot == null)
+        newBoard[index] = mark
+    }
+    const countAvailableSpaces = (newBoard) =>{
+        let notNull = newBoard.filter(slot => !(slot == null)).length
         //total space subtract not null spaces
         return 9 - notNull
     }
-    return Object.assign({}, prototype, {makeMove, randomMove, miniMax})     
+
+
+    return Object.assign({}, prototype, {makeMove, randomMove, miniMax})    
+    
+    const getWinner = (square_index, new_letter) => {
+        let row_index = Math.floor(square_index/3)*3
+        let temp_row = board.slice(row_index, row_index+3)
+        let winning = temp_row.every(letter => new_letter == letter)
+        if(winning){
+            return new_letter
+        }
+
+        let column_index = square_index % 3
+        temp_col = board.filter((element, index) => {
+            return (index % 3 == column_index)
+        })
+        winning = temp_col.every(letter =>  new_letter == letter)
+        if(winning){
+            return new_letter
+        }
+
+        let left_diagonal = [board[0],board[4],board[8]]
+        let right_diagonal = [board[2],board[4],board[6]]
+        
+        winning = left_diagonal.every(letter =>  new_letter == letter)
+        if(winning){
+            return new_letter
+        }
+        winning = right_diagonal.every(letter =>  new_letter == letter)
+        if(winning){
+            return new_letter
+        }
+
+    } 
 }
 
 
