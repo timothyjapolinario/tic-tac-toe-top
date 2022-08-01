@@ -10,20 +10,18 @@ const Player = (marker, board) => {
     const removeAllMarks = () =>{
         markedSlots.length = 0
     }
-    const makeMove = (index) => {
-        markedSlots.push(index)
-    }
-    const makeMove2 = (index) =>{
+
+    const makeMove = (index) =>{
         board[index] = marker
     }
-    return {getMarker, makeMove, makeMove2}
+    return {getMarker, makeMove}
 }
 
 
 const Computer = (marker, difficulty,board) => {
     const prototype = Player(marker);
     let boardCopy
-    let iteration = 0
+    let iteration = 1
     let opponentMarker = marker == "x"? "o": "x"
     let computer_player = Player(marker)
     let other_player = Player(opponentMarker)
@@ -35,13 +33,14 @@ const Computer = (marker, difficulty,board) => {
 
     const makeMove = () =>{
         if(difficulty == 1){
+            let randomIndex = randomMove()
             boardCopy = board.slice(0)
-            console.log(miniMax())
-            return randomMove()
+            miniMax()
+            console.log("iteration: "+ iteration)
+            return randomIndex
         }
         if(difficulty == 2){
             boardCopy = board.slice(0)
-            miniMax()
         }
     }
     const randomMove = () =>{
@@ -57,16 +56,24 @@ const Computer = (marker, difficulty,board) => {
     }
 
     const miniMax = () => {
-        console.log("spaces: " + (countAvailableSpaces(boardCopy)-1))
+        let nextSpaceIndex
         if(countAvailableSpaces(boardCopy) < 1){
-            console.log(boardCopy)
-            return iteration
+            console.log("Board is Filled!")
+            return
         }
-        fillNextSpace(boardCopy, currentPlayer.getMarker())
+
+        nextSpaceIndex = fillNextSpace(boardCopy, currentPlayer.getMarker())
+        if(getWinner(nextSpaceIndex, currentPlayer.getMarker())){
+            return
+        }
         changeCurrentPlayer()
-        console.log("running")
         iteration += 1
         miniMax()
+    }
+
+    const resetMiniMax = () =>{
+        iteration = 1
+        boardCopy = board.slice(0)
     }
 
     const changeCurrentPlayer = () => {
@@ -80,6 +87,7 @@ const Computer = (marker, difficulty,board) => {
     const fillNextSpace = (newBoard, mark) =>{
         let index = newBoard.findIndex(slot => slot == null)
         newBoard[index] = mark
+        return index
     }
     const countAvailableSpaces = (newBoard) =>{
         let notNull = newBoard.filter(slot => !(slot == null)).length
@@ -88,18 +96,16 @@ const Computer = (marker, difficulty,board) => {
     }
 
 
-    return Object.assign({}, prototype, {makeMove, randomMove, miniMax})    
-    
     const getWinner = (square_index, new_letter) => {
         let row_index = Math.floor(square_index/3)*3
-        let temp_row = board.slice(row_index, row_index+3)
+        let temp_row = boardCopy.slice(row_index, row_index+3)
         let winning = temp_row.every(letter => new_letter == letter)
         if(winning){
             return new_letter
         }
 
         let column_index = square_index % 3
-        temp_col = board.filter((element, index) => {
+        temp_col = boardCopy.filter((element, index) => {
             return (index % 3 == column_index)
         })
         winning = temp_col.every(letter =>  new_letter == letter)
@@ -107,8 +113,8 @@ const Computer = (marker, difficulty,board) => {
             return new_letter
         }
 
-        let left_diagonal = [board[0],board[4],board[8]]
-        let right_diagonal = [board[2],board[4],board[6]]
+        let left_diagonal = [boardCopy[0],boardCopy[4],boardCopy[8]]
+        let right_diagonal = [boardCopy[2],boardCopy[4],boardCopy[6]]
         
         winning = left_diagonal.every(letter =>  new_letter == letter)
         if(winning){
@@ -118,8 +124,9 @@ const Computer = (marker, difficulty,board) => {
         if(winning){
             return new_letter
         }
-
+        return false
     } 
+    return Object.assign({}, prototype, {makeMove, randomMove, miniMax})    
 }
 
 
@@ -139,7 +146,7 @@ const Game = (() => {
 
     const playTurn = (slot, index) =>{
         //Human Player
-        player_1.makeMove2(index)
+        player_1.makeMove(index)
         endTurn(index, currentPlayer.getMarker())
         if(hasWinner||isDraw){
             reset()
